@@ -3,24 +3,30 @@ import path from 'path';
 import { pool } from '../c_db.js';   
 import csv from 'csv-parser';
 
-
-export async function loadplatforms() {
-    const rutaArchivo = path.resolve('server/data/02_platforms.csv');
-    const platforms = [];
+export async function loadtransactions() {
+    const rutaArchivo = path.resolve('server/data/04_transactions.csv');
+    const transactions = [];
 
     return new Promise((resolve,reject)=>{ 
         fs.createReadStream(rutaArchivo)
         .pipe(csv())
         .on("data",(fila) =>{
-            platforms.push([
+            transactions.push([
+                fila.transaction_id,
+                fila.transaction_code.trim(),
+                fila.transaction_date,
+                fila.amount,
+                fila.status,
+                fila.transaction_type,
                 fila.platform_id,
-                fila.name_platform
+                fila.invoice_id
+                
             ])        
         })
         .on("end",async () =>{
             try {
-                const sql = 'INSERT INTO platforms(platform_id,name_platform) VALUES ?';
-                const [result] = await pool.query(sql, [platforms]);
+                const sql = 'INSERT INTO transactions(transaction_id,transaction_code,transaction_date,amount,transaction_type,status,platform_id,invoice_id) VALUES ?';
+                const [result] = await pool.query(sql, [transactions]);
                 
                 console.log(`To insert ${result.affectedRows} Records in the Customers table`);
                 resolve();
